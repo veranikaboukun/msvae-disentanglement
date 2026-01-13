@@ -35,7 +35,7 @@ def train(epoch, b):
                                                                                     mu_phi_list, 
                                                                                     logvar_phi_list, 
                                                                                     s_list, 
-                                                                                    pi_init_values, 
+                                                                                    pi_list, # !
                                                                                     z_list, 
                                                                                     beta=beta, 
                                                                                     scale=b, 
@@ -47,7 +47,7 @@ def train(epoch, b):
                                                                                                     logvar_phi_list, 
                                                                                                     b, 
                                                                                                     s_list, 
-                                                                                                    pi_init_values, 
+                                                                                                    pi_list, # !
                                                                                                     args.dimz, 
                                                                                                     q_s_x, device, 
                                                                                                     args.sources)
