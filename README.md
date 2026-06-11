@@ -3,7 +3,7 @@
 ## Overview 
 The [pretraining](./pretraining), [training](./training) and [evaluation](./evaluation) directories and corresponding sub-directories contain implementations of Multi-Stream Variational Autoencoder (MS-VAE) to be presented at ECML PKDD 2026.
 
-The [data](./data) directory contains the necessary data files which were used in section 3.2 for MNIST digit source separation. The raw audio files from the [database](https://zenodo.org/records/17342367) used in section 3.3 cannot be provided due to data protection regulations. 
+The MNIST datasets which were used in section 3.2 for MNIST digit source separation can be found here. The raw audio files from the [database](https://zenodo.org/records/17342367) used in section 3.3 cannot be provided due to data protection regulations. 
 
 ## Pretrained Models & Requirements
 
