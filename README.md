@@ -5,6 +5,8 @@ The [pretraining](./pretraining), [training](./training) and [evaluation](./eval
 
 The [data](./data) directory contains the necessary data files which were used in section 3.2 for MNIST digit source separation. The raw audio files from the [database](https://zenodo.org/records/17342367) used in section 3.3 cannot be provided due to data protection regulations. 
 
+For convinience we also include pretained VAE-BSS files originally avaliable at the corresponding [respository](https://github.com/jundsp/VAE-BSS), 
+
 Please follow the [Setup](#setup) instructions described below to run the experiments. 
 
 The code has only been tested on Linux systems.
