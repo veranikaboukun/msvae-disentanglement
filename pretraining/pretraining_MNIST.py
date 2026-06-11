@@ -1,3 +1,32 @@
+# Copyright (C) 2021 Julian Neri, Roland Badeau, Philippe Depalle
+# Copyright (C) 2026 Veranika Boukun <veranika.boukun@uni-oldenburg.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://gnu.org>.
+#
+# ----------------------------------------------------------------------
+# Modifications by Veranika Boukun (2026):
+# - Mildly modified original train.py from VAEM-BSS pretrain
+#   individual VAE experts for MNIST.
+# - Added saving of individual posterior statistics (mu_z and logvar_z).
+# - Added custom plotting functions for individual analysis.
+# - Removed the beta annealing procedure.
+# - Updated script to support ECML PKDD 2026 paper contribution:
+#   "Disentanglement in a Multi-Stream VAE"
+# Original template repository: https://github.com
+# ----------------------------------------------------------------------
+
+
 import numpy as np
 import torch
 from torch import optim
@@ -5,9 +34,7 @@ import matplotlib.pyplot as plt
 from src.model import *
 from src.model_streams import MultiStream_VAE
 from src.argparser_pretrain import *
-# from src.utils import *
 from src.dataloader import *
-from src.H5Logger import *
 
 def train(epoch):
 
@@ -39,9 +66,6 @@ def train(epoch):
                     to_log = {"data": data, "mu_z": mu_z, "logvar_z": logvar_z} 
                 else:
                     to_log = {"data_last_batch": data, "mu_z_last_batch": mu_z, "logvar_z_last_batch": logvar_z} 
-
-                if to_log is not None:
-                    logger.append_and_write(**to_log)
 
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)] \t -ELL: {:5.6f} \t KLD: {:5.6f} \t Loss: {:5.6f}'.format(
@@ -128,8 +152,6 @@ data_file, training_file = (
         args.save_path + "/images_labels.h5",
         args.save_path + "/training.h5",
     )
-
-logger = H5Logger(data_file)
 
 
 subset = [args.subset]

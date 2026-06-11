@@ -5,7 +5,18 @@ The [pretraining](./pretraining), [training](./training) and [evaluation](./eval
 
 The [data](./data) directory contains the necessary data files which were used in section 3.2 for MNIST digit source separation. The raw audio files from the [database](https://zenodo.org/records/17342367) used in section 3.3 cannot be provided due to data protection regulations. 
 
-For convinience we also include pretained VAE-BSS files originally avaliable at the corresponding [respository](https://github.com/jundsp/VAE-BSS), 
+## Pretrained Models & Requirements
+
+To replicate the results in Table 1, download the following pretrained weights and external files from the original repositories:
+
+### 1. VAE-BSS Checkpoints
+* **Files:** `model_vae_K2.pt`, `model_vae_K3.pt`, and `model_vae_K4.pt`
+* **Source:** Download from the [VAE-BSS Repository](https://github.com/jundsp/VAE-BSS/tree/main/saves/pretrained).
+* **Placement:** Place these files inside your local directory under `pretrained_model_files/`.
+
+### 2. BASIS NCSN Checkpoints & Architecture
+* **Weights:** Download `mnist/checkpoint.pth` from the [Basis Separation Repository](https://github.com/jthickstun/basis-separation/tree/master).
+* **Architecture:** Download `cond_refinenet_dilated.py` from [ncsn/models/](https://github.com/jthickstun/basis-separation/blob/master/ncsn/models/cond_refinenet_dilated.py).
 
 Please follow the [Setup](#setup) instructions described below to run the experiments. 
 

@@ -1,11 +1,40 @@
-import os
-import h5py
+# Copyright (C) 2021 Julian Neri, Roland Badeau, Philippe Depalle
+# Copyright (C) 2026 Veranika Boukun veranika.boukun@uni-oldenburg.de
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://gnu.org>.
+#
+# ----------------------------------------------------------------------
+# Modifications made by Veranika Boukun (2026):
+# - Added new mixing functions tailored to the proposed generative model.
+# - Modified the KLD_gauss function (including the addition by N).
+# - Retained the original, unmodified KLD_laplace, vae_masks, and 
+#   optimal_permute functions, as well as the LaplaceLoss class.
+# - Implemented significant additions for free energy computations 
+#   required by the EM procedure.
+# - Added auxiliary functions for accuracy computation.
+# - Updated the script to support the ECML PKDD 2026 contribution 
+#   "Disentanglement in a Multi-Stream VAE".
+# Original repository template: https://github.com
+# ----------------------------------------------------------------------
+
+
 import torch
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 from torch.utils.data import TensorDataset
 from torch.distributions import Laplace
-from typing import Dict
+
 
 def mix_mnist_data_return_individual_sources(dataset_sources, 
                                              num_samples, 
@@ -101,8 +130,7 @@ class LaplaceLoss(torch.nn.Module):
     def forward(self, estimate, target):
         return torch.sum((target-estimate).abs() / self.scale)
 
-# MNIST arbitraty k = n_sources
-# Works but if n_sources=10, too big for M>1!
+
 def inner_energy_mnist_k_sources(x, scale, pi_list, s_list, mu_theta_reshaped, z_reshaped, D, H, M, n_sources):
 
     const1 = H*torch.tensor((np.sqrt(2*np.pi))**n_sources, dtype=torch.float32)
@@ -159,7 +187,7 @@ def inner_energy_audio(x, scale, pi_1, pi_2, s_list, mu_theta_1, mu_theta_2, z_1
     
     return E_theta_all + shift 
 
-# MNISZ inner energy computation
+# MNIST inner energy computation
 def free_energy_first_term_and_pies_mnist_k_sources(x, b, N, M, s_list, pi_list, mu_theta_list, z_list, n_sources):
 
     D = x.size(1) # dimx = 784
@@ -323,37 +351,22 @@ def free_energy_first_term_and_pies_audio(x, b, N, M, s_list, pi_list, mu_theta_
 
 # Accuracy of prediction on test set (q_s_x) based on ground truth
 def accuracy_score(target, prediction):
-    correct = (target == prediction).float()  # This will be a tensor of 0s and 1s, where 1 indicates a correct prediction
-    accuracy = correct.sum() / len(correct)  # Counting the number of correct predictions and dividing by the total number
+    correct = (target == prediction).float()  
+    accuracy = correct.sum() / len(correct)  
     return accuracy.item() * 100 
 
 def get_case_numbers_H(labels, q_s_x, H):
-    # Convert binary combinations from labels to case numbers
     multiplier = 2**torch.arange(H).float()
     case_numbers = torch.mv(labels, multiplier).int()
-    # Get predicted indices which correspond to most likely case number
+   
     _, max_indices = torch.max(q_s_x.detach().cpu(), dim=1)
 
-    return case_numbers, max_indices  # target, prediction
+    return case_numbers, max_indices 
 
 def get_case_numbers(labels, q_s_x):
     _, max_indices = torch.max(q_s_x.detach().cpu(), dim=1)
-    # get case numbers for labels
+    
     multiplier = torch.tensor([2., 1.])
     case_numbers = torch.mv(labels, multiplier).round().int()
 
-    return case_numbers, max_indices # target, prediction
-
-def store_as_h5(to_store_dict: Dict[str, torch.Tensor], output_name: str) -> None:
-    """Takes dictionary of tensors and writes to H5 file
-
-    :param to_store_dict: Dictionary of torch Tensors
-    :param output_name: Full path of H5 file to write data to
-    """
-    os.makedirs(os.path.split(output_name)[0], exist_ok=True)
-    with h5py.File(output_name, "w") as f:
-        for key, val in to_store_dict.items():
-            f.create_dataset(
-                key, data=val if isinstance(val, float) else val.detach().cpu()
-            )
-    print(f"Wrote {output_name}")
+    return case_numbers, max_indices 

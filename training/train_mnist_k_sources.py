@@ -1,3 +1,31 @@
+# Copyright (C) 2021 Julian Neri, Roland Badeau, Philippe Depalle
+# Copyright (C) 2026 Veranika Boukun <veranika.boukun@uni-oldenburg.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://gnu.org>.
+#
+# ----------------------------------------------------------------------
+# Modifications by Veranika Boukun (2026):
+# - Heavily modified original train.py from VAEM-BSS.
+# - Integrated all necessary pre-processing steps and EM steps.
+# - Added entropy and accuracy calculations.
+# - Added multiple custom plotting functions for individual analysis.
+# - Removed the beta annealing procedure.
+# - Updated script to support ECML PKDD 2026 paper contribution:
+#   "Disentanglement in a Multi-Stream VAE"
+# Original template repository: https://github.com
+# ----------------------------------------------------------------------
+
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
@@ -8,7 +36,6 @@ from src.argparser_mnist import *
 from src.utils import *
 from src.dataloader import *
 import itertools
-from src.H5Logger import *
 from torchvision import datasets, transforms
 from torch.utils.data import Subset, DataLoader
 
@@ -35,7 +62,7 @@ def train(epoch, b):
                                                                                     mu_phi_list, 
                                                                                     logvar_phi_list, 
                                                                                     s_list, 
-                                                                                    pi_list, # !
+                                                                                    pi_list, 
                                                                                     z_list, 
                                                                                     beta=beta, 
                                                                                     scale=b, 
@@ -47,7 +74,7 @@ def train(epoch, b):
                                                                                                     logvar_phi_list, 
                                                                                                     b, 
                                                                                                     s_list, 
-                                                                                                    pi_list, # !
+                                                                                                    pi_list,
                                                                                                     args.dimz, 
                                                                                                     q_s_x, device, 
                                                                                                     args.sources)
@@ -110,9 +137,7 @@ def train(epoch, b):
               "H_s_prior": entropies[2], 
               "H_z_prior": entropies[3],
               "H_sum": entropies[4],
-              "H_enc_terms": entropies[5:len(entropies)]}
-    if to_log is not None:
-        logger.append_and_write(**to_log)
+              "H_enc_terms": entropies[5:len(entropies)]} # log data with your preferred method
 
     return train_losses, pi_list, b, entropies 
 
@@ -261,9 +286,7 @@ def test(epoch, pi_list, b):
         print('====> Test accuracy: {:.4f}'.format(metrics[0]), flush=True)
         print('====> Test MIG score: {:.4f}'.format(metrics[1]), flush=True)
 
-        to_log = {"test_loss": test_losses[0], "accuracy": metrics[0]}
-        if to_log is not None:
-            logger.append_and_write(**to_log)
+        to_log = {"test_loss": test_losses[0], "accuracy": metrics[0]} # log data with your preferred method
 
     return test_losses, metrics
 
@@ -331,8 +354,6 @@ data_file, training_file = (
         args.save_path + "/images_labels.h5",
         args.save_path + "/training.h5",
     )
-
-logger = H5Logger(training_file)
 
 train_set = datasets.MNIST(args.data_directory, 
                            train=True, 
@@ -441,8 +462,6 @@ to_log = {"pi_init_list": torch.tensor(pi_init_values),
           "b_gen": torch.tensor(b_gen), 
           "s_dim": torch.tensor(H)} 
 
-if to_log is not None:
-    logger.append_and_write(**to_log)
 
 vae_list = []
 pretrained_models = [args.pretrained_0_model, 
@@ -513,8 +532,6 @@ for epoch in range(1, args.epochs+1):
     losses["test"][epoch-1], metrics["test"][epoch-1] = test(epoch, pi_list, b)
     
     to_log = {"lr": torch.tensor(optimizer_all.param_groups[0]['lr'])}
-    if to_log is not None:
-        logger.append_and_write(**to_log)
 
     with torch.no_grad():
         if epoch % args.save_interval == 0:

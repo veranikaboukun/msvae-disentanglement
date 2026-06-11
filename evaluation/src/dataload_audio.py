@@ -20,8 +20,6 @@ class SpectrogramDataset(data.Dataset):
                                                   n_fft=win_length,
                                                   hop_length=win_length//2)
         self.target_length = target_length
-        # This is the max number of time bins you want after padding. 
-        # Set it as per your data
         self.max_timesteps = max_timesteps 
         self.transpose = transpose
 
@@ -31,12 +29,11 @@ class SpectrogramDataset(data.Dataset):
     def __getitem__(self, idx):
         audio_path = self.filenames[idx]
         waveform, sr = torchaudio.load(audio_path)       
-        # yt, index = librosa.effects.trim(waveform)
         yt = waveform[0]
 
         spectrogram = self.transform(yt)
 
-        # # Zero-pad along the time dimension
+        # Zero-pad along the time dimension
         spectrogram = F.pad(input=spectrogram, 
                             pad=(0, self.max_timesteps - spectrogram.shape[1]),
                             mode='constant', 
@@ -44,7 +41,7 @@ class SpectrogramDataset(data.Dataset):
         
         min_val = spectrogram.min()
         max_val = spectrogram.max()
-        eps = 1e-6 # or some small number
+        eps = 1e-6 
         spectrogram_normalized = (spectrogram - min_val) / max((max_val - min_val), eps)
 
         if self.transpose:

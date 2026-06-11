@@ -1,13 +1,34 @@
+# Copyright (C) 2021 Julian Neri, Roland Badeau, Philippe Depalle
+# Copyright (C) 2026 Veranika Boukun veranika.boukun@uni-oldenburg.de
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://gnu.org>.
+#
+# ----------------------------------------------------------------------
+# Modifications made by Veranika Boukun (2026):
+# - Restructured and modified the original VAE-BSS pipeline for 
+#   MS-VAE architecture and compatibility.
+# - Implemented core multi-stream VAE functions and equations, 
+#   including an EM procedure not originally required or part of VAE-BSS.
+# - Updated the script to support the ECML PKDD 2026 contribution 
+#   "Disentanglement in a Multi-Stream VAE".
+# Original repository template: https://github.com
+# ----------------------------------------------------------------------
+
 import torch
-import torch.utils.data
-from torch import nn, optim
-from torch.nn import functional as F
-import numpy as np
+from torch import nn
 from .utils import *
-from tvo.variational.TVOVariationalStates import TVOVariationalStates
 
-
-# Linear block from VAE-BSS (simply faster)
 class LinearBlock(nn.Module):
     def __init__(self, in_channels,out_channels,activation=True):
         super(LinearBlock, self).__init__()
@@ -130,14 +151,14 @@ class MultiStream_VAE(nn.Module):
         return recon_separate_list 
 
     def forward(self, x, M):
-        mu_phi_list, logvar_phi_list = self.encode(x.view(-1, self.dimx)) # [[64, 20], [64, 20]], [[64, 20], [64, 20]]
+        mu_phi_list, logvar_phi_list = self.encode(x.view(-1, self.dimx)) 
         if self.variational:
-            z_list = [self.reparameterize(mu, logvar, M) for mu, logvar in zip(mu_phi_list, logvar_phi_list)]  #[(64, M, 20), (64, M, 20)] 
+            z_list = [self.reparameterize(mu, logvar, M) for mu, logvar in zip(mu_phi_list, logvar_phi_list)] 
         else:
             z_list = mu_phi_list
-        mu_theta_list = self.decode(z_list) # (64, 784), (64, 2, 784) -> should be [(N, M, 784), (N, M, 784)]
+        mu_theta_list = self.decode(z_list) 
 
-        return mu_theta_list, mu_phi_list, logvar_phi_list, z_list #(N, M, 784), (N, H), (N, H), (N, M, H)
+        return mu_theta_list, mu_phi_list, logvar_phi_list, z_list 
 
 # Multi-stream VAE for audio using simple feed forward archicture 
 class MultiStream_VAE_audio(nn.Module):
@@ -151,7 +172,7 @@ class MultiStream_VAE_audio(nn.Module):
         self.variational = variational
         self.freeze_decoder = freeze_decoder
 
-        chans = (428, 320, 224, 160, 80) # 257*20, zdim=20
+        chans = (428, 320, 224, 160, 80) 
 
         self.out_z = nn.ModuleList([nn.Linear(chans[-1], 2*self.dimz) for _ in range(self.n_sources)])
         self.out_w = nn.ModuleList([nn.Linear(chans[-1], 1) for _ in range(self.n_sources)])
@@ -204,7 +225,6 @@ class MultiStream_VAE_audio(nn.Module):
     def reparameterize(self, mu, logvar, M):
         std = torch.exp(0.5*logvar)
         eps = torch.randn((std.size(0), M, std.size(1))).to(std.device)
-        # eps = torch.randn((std.size(0), M, std.size(1)), dtype=torch.float16, device=std.device)
         return mu[:, None, :] + eps*std[:, None, :]
 
     def decode(self, z):
@@ -212,11 +232,10 @@ class MultiStream_VAE_audio(nn.Module):
         
         B = z[0].size(0)
         M = z[0].size(1)
-        #eps = torch.finfo(torch.float16).eps
 
         for i in range(self.n_sources):
             d = self.Decoders[i](z[i].view(-1, self.dimz))
-            recon_separate = torch.sigmoid(d).view(-1, self.dimx) #+ eps #TODO: is this eps necessary? 
+            recon_separate = torch.sigmoid(d).view(-1, self.dimx) 
             recon_separate_reshaped = recon_separate.view(B, M, self.dimx)
             recon_separate_list.append(recon_separate_reshaped)
         return recon_separate_list 
@@ -241,7 +260,7 @@ class LaplaceLoss(nn.Module):
         self.logscale = self.scale.log()
 
     def forward(self, estimate, target):
-        return torch.sum((target-estimate).abs() / self.scale) # VB: the formula checks out, scale here is the b param of Laplace, not Gauss
+        return torch.sum((target-estimate).abs() / self.scale) 
     
 class Loss_k_sources(nn.Module):
     def __init__(self, sources=2, alpha=None, likelihood='bernoulli', variational=True, prior='gauss', scale=1.0, N=128, M=5):
@@ -279,7 +298,7 @@ class Loss_k_sources(nn.Module):
         
         ELL, pi_new_list, b_new, q_s_x = free_energy_first_term_and_pies_mnist_k_sources(x, scale, N, M, s_list, pi_list, mu_theta_list, z_list, self.sources)
 
-        loss = -ELL + sum(beta * KLD for KLD in KLD_list) #VB: beta hyperparameter here is used to avoid posterior collapse (as a type of annealing, not beta VAE for disentanglement)
+        loss = -ELL + sum(beta * KLD for KLD in KLD_list)
         free_energy = -loss
         
         return loss, free_energy, ELL, KLD_list, pi_new_list, b_new, q_s_x

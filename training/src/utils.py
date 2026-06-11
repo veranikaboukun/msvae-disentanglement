@@ -1,10 +1,41 @@
-import os
+# Copyright (C) 2021 Julian Neri, Roland Badeau, Philippe Depalle
+# Copyright (C) 2026 Veranika Boukun veranika.boukun@uni-oldenburg.de
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://gnu.org>.
+#
+# ----------------------------------------------------------------------
+# Modifications made by Veranika Boukun (2026):
+# - Added new mixing functions tailored to the proposed generative model.
+# - Modified the KLD_gauss function (including the addition by N).
+# - Retained the original, unmodified KLD_laplace function as well as 
+#   the LaplaceLoss class.
+# - Implemented significant additions for free energy computations 
+#   required by the EM procedure, as well as entropy calculations for 
+#   further analysis.
+# - Added auxiliary functions for accuracy computation, H5 loading, 
+#   and CSV processing.
+# - Updated the script to support the ECML PKDD 2026 contribution 
+#   "Disentanglement in a Multi-Stream VAE".
+# Original repository template: https://github.com
+# ----------------------------------------------------------------------
+
+
 import h5py
 import torch
 import numpy as np
 from torch.utils.data import TensorDataset
 from torch.distributions import Laplace
-from typing import Dict
 from collections import Counter
 from torch.distributions import Normal, Laplace
 import csv
@@ -111,7 +142,7 @@ def compute_pi_from_labels(csv_file):
     with open(csv_file, 'r', newline='') as f:
         reader = csv.reader(f)
 
-        # 1) Read the header row
+        # Read the header row
         header = next(reader, None)
         if header is None:
             print(f"Empty CSV: {csv_file}")
@@ -121,12 +152,12 @@ def compute_pi_from_labels(csv_file):
         instrument_names = header[1:]
         num_instruments = len(instrument_names)
 
-        # 2) Prepare counters
+        # Prepare counters
         sums = [0] * num_instruments  # sum of activity for each instrument
         sum_any = 0
         total_rows = 0
 
-        # 3) Read each data row
+        # Read each data row
         for row in reader:
             # Ensure the row has at least 1 + num_instruments columns
             if len(row) < 1 + num_instruments:
@@ -149,13 +180,13 @@ def compute_pi_from_labels(csv_file):
             print(f"No valid rows found in {csv_file}")
             return []
 
-        # 4) Compute pi_instrument for each instrument
+        # Compute pi_instrument for each instrument
         pi_values = []
         for i in range(num_instruments):
             pi_instrument = sums[i] / total_rows
             pi_values.append(pi_instrument)
 
-        # 5) Compute pi_any_active
+        # Compute pi_any_active
         pi_any = sum_any / total_rows
         pi_values.append(pi_any)
 
@@ -380,20 +411,6 @@ def calc_entropy_dim(pmf):
     entropy = -(pmf * torch.log(pmf+1e-19)) 
     # Here dim=1 specifies that we sum along the second dimension
     return entropy
-
-def store_as_h5(to_store_dict: Dict[str, torch.Tensor], output_name: str) -> None:
-    """Takes dictionary of tensors and writes to H5 file
-
-    :param to_store_dict: Dictionary of torch Tensors
-    :param output_name: Full path of H5 file to write data to
-    """
-    os.makedirs(os.path.split(output_name)[0], exist_ok=True)
-    with h5py.File(output_name, "w") as f:
-        for key, val in to_store_dict.items():
-            f.create_dataset(
-                key, data=val if isinstance(val, float) else val.detach().cpu()
-            )
-    print(f"Wrote {output_name}")
 
 # Accuracy of prediction on test set (q_s_x) based on ground truth
 def accuracy_score(target, prediction):
