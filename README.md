@@ -44,16 +44,8 @@ pip install -r requirements_LASS.txt
 
 ## Pretrained Models & Requirements
 
-We provide the pre-trained checkpoints for our MS-VAE 10% and MS-VAE 100% models. You can download them manually from the [GitHub Releases Page](https://github.com), or fetch them directly via your terminal:
-
-```bash
-# Create the checkpoint directory structure
-mkdir -p checkpoints/
-
-# Download the checkpoints from the release assets
-wget https://github.com/veranikaboukun/msvae-disentanglement/ -O checkpoints/v1.0.0/MS-VAE_10_model_checkpoint_K10.pt
-wget https://github.com/veranikaboukun/msvae-disentanglement/ -O checkpoints/MS-VAE_100_model_checkpoint_K10.pt
-```
+We provide the pre-trained checkpoints for our MS-VAE 10% and MS-VAE 100% models. 
+**(To be updated later with a Zenodo link to the datasets and checkpoints)**
 
 To replicate the results in Table 1, download the following pretrained weights and external files from the original repositories:
 
