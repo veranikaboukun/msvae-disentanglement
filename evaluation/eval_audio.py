@@ -338,10 +338,10 @@ if __name__ == '__main__':
                         default='/test/speaker-2/')
     
     parser.add_argument('--model-path', type=str, 
-                        default='/training/audio/MS-VAE-model-1.pt')
+                        default='/training/audio/MS-VAE-model-1.pt') # checkpoint for a trained MS-VAE model 
     
     parser.add_argument('--model-path-2', type=str, 
-                    default='/training/audio/MS-VAE-model-2.pt') # additional model
+                    default='/training/audio/MS-VAE-model-2.pt') # checkpoint of an additional MS-VAE model (optional)
 
     parser.add_argument('--winlen', type=int, default=512,
                     help='STFT window length')

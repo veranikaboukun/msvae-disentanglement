@@ -129,7 +129,6 @@ def compute_permutation_invariant_metrics(gt_images, pred_images):
     
     return psnr_scores, ssim_scores
 
-
 def dummy_train_iterator(args):
     print("args.batch_size value:", args.batch_size)
     print("type(args.batch_size):", type(args.batch_size))
@@ -276,12 +275,9 @@ class MnistRunner():
         print('====> Mean PSNR score (K = ' + str(self.args.num_active_sources) + '): {:.4f}'.format(metrics[1]), flush=True)
         print('====> Mean SSIM score (K = ' + str(self.args.num_active_sources) + '): {:.4f}'.format(metrics[2]), flush=True)
 
-        import pdb; pdb.set_trace()
-
-        num_examples = 9
-        grid_size = 3
-
         # (!) Uncomment the section below to produce plots:
+        # num_examples = 9
+        # grid_size = 3
         # mixture_imgs = [data[i].cpu().detach().view(28,28) for i in range(num_examples)]
 
         # make_grid_panel_torch(mixture_imgs, 
