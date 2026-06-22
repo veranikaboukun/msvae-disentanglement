@@ -149,13 +149,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--model-path', type=str, 
-                        default='pretrained_model_files/model_vae_K2_vae_bss.pt')
+                        default='msvae-disentanglement/evaluation/pretrained_model_files/model_vae_K2_vae_bss.pt')
     
     parser.add_argument('--data-directory', type=str, 
-                        default='/data/mnist_test_set_K_2_noiseless.pt', metavar='fname',
+                        default='msvae-disentanglement/evaluation/ms_vae_data_checkpoints/data/mnist_test_set_K_2_noiseless.pt', metavar='fname',
                         help='MNIST dataset')
     
-    parser.add_argument('--num-sources', type=int, default=2,
+    parser.add_argument('--num-active-sources', type=int, default=2,
                         help='Number of sources to infer')
     
     parser.add_argument('--testing-indices-0', type=str, 
@@ -260,40 +260,43 @@ if __name__ == '__main__':
     device = torch.device("cuda" if args.cuda else "cpu")
     kwargs = {'num_workers': args.num_workers, 'pin_memory': True} if args.cuda else {}
 
-    test_set = datasets.MNIST(args.data_directory, train=False, download=True, transform=transforms.ToTensor())
+    ## Uncomment lines 264-296 for creating a new dataset (use path to MNIST dataset):
+    # test_set = datasets.MNIST(args.data_directory, 
+    #                           train=False, 
+    #                           download=True, 
+    #                           transform=transforms.ToTensor())
 
-    valid_subset_list = []
-    pi_gen_values = []
+    # valid_subset_list = []
+    # pi_gen_values = []
 
-    testing_indices = {}
+    # testing_indices = {}
 
-    for i in range(args.sources):
+    # for i in range(args.sources):
 
-        testing_key = f'testing_indices_{i}'
+    #     testing_key = f'testing_indices_{i}'
         
-        testing_indices[i] = np.load(getattr(args, testing_key))
-        npy_testing_indices = testing_indices[i]
+    #     testing_indices[i] = np.load(getattr(args, testing_key))
+    #     npy_testing_indices = testing_indices[i]
         
-        # Process the testing/validation data
-        valid_with_label = Subset(test_set, npy_testing_indices)
-        valid_subset = ImageOnlyDataset(valid_with_label)
-        valid_subset_list.append(valid_subset) 
+    #     # Process the testing/validation data
+    #     valid_with_label = Subset(test_set, npy_testing_indices)
+    #     valid_subset = ImageOnlyDataset(valid_with_label)
+    #     valid_subset_list.append(valid_subset) 
 
-        pi_gen_key = f'pi_{i}_gen'
-        pi_gen_value = getattr(args, pi_gen_key)
-        pi_gen_values.append(pi_gen_value)
+    #     pi_gen_key = f'pi_{i}_gen'
+    #     pi_gen_value = getattr(args, pi_gen_key)
+    #     pi_gen_values.append(pi_gen_value)
 
-    num_samples_test = args.n_test
-    b_gen = args.scale
+    # num_samples_test = args.n_test
+    # b_gen = args.scale
 
-    # (!) Use code below to generate your own dataset:
     # mnist_test_set = mix_mnist_data_return_individual_sources(valid_subset_list, 
     #                                                             num_samples_test, 
     #                                                             pi_gen_values, 
     #                                                             b_gen)
 
-    # Read in the provided test file
-    data = torch.load(args.path_dataset)
+    ## Load an existing dataset
+    data = torch.load(args.data_directory)
     mixtures = data["mixtures"]
     sources = data["sources"]
     individual_images = data["individual_images"]
@@ -305,13 +308,13 @@ if __name__ == '__main__':
                                        shuffle=False)
    
     metrics = torch.zeros(3)
-    print('MNIST digit count = ' + str(args.num_sources))
-    print('\tK = ' + str(args.num_sources))
+    print('MNIST digit count = ' + str(args.num_active_sources))
+    print('\tK = ' + str(args.num_active_sources))
 
     # Load the pretrained VAE-BSS Model
     model_vae = VAE(dimx=args.dimx,
                     dimz=args.dimz,
-                    n_sources=args.num_sources,
+                    n_sources=args.num_active_sources,
                     device=device,
                     variational=True).to(device)
     model_vae.load_state_dict(torch.load(args.model_path))
