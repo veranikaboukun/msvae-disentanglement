@@ -303,3 +303,53 @@ class Loss_k_sources(nn.Module):
         
         return loss, free_energy, ELL, KLD_list, pi_new_list, b_new, q_s_x
     
+class Loss_MNIST_fixed_K(nn.Module):
+    def __init__(self, sources=2, alpha=None, likelihood='bernoulli', variational=True, prior='gauss', scale=1.0, N=128, M=5):
+        super(Loss_MNIST_fixed_K, self).__init__()
+        self.variational = variational
+        self.prior = prior
+        self.scale = scale
+        self.sources = sources
+        self.N = N
+        self.M = M
+        
+        if likelihood == 'gauss':
+            self.criterion = nn.MSELoss(reduction='sum')
+        elif likelihood == 'laplace':
+            self.criterion = LaplaceLoss()
+        else:
+            self.criterion = nn.BCELoss(reduction='sum')
+
+        if alpha is None:
+            self.alpha_pior = nn.Parameter(torch.ones(1,sources),requires_grad=False)
+        else:
+            self.alpha_prior = nn.Parameter(alpha,requires_grad=False)
+
+    def forward(self, x, mu_theta_list, mu_phi_list, logvar_phi_list, s_list, z_list, K, beta=1, scale=1, N=128, M=5):
+
+        KLD_list = []
+        for i in range(self.sources):
+            if self.variational is True:
+                if self.prior == 'laplace':
+                    KLD_i = KLD_laplace(mu_phi_list[i],logvar_phi_list[i],scale=self.scale)
+                    KLD_list.append(KLD_i)
+                else:
+                    KLD_i = KLD_gauss(mu_phi_list[i], logvar_phi_list[i])  # DKL [q(z_1|x) || p(z_1)]
+                    KLD_list.append(KLD_i)
+        
+        ELL, b_new, q_s_x = free_energy_first_term_and_pies_mnist_fixed_K(x, 
+                                                                        scale, 
+                                                                        N, 
+                                                                        M, 
+                                                                        K,
+                                                                        s_list, 
+                                                                        mu_theta_list, 
+                                                                        z_list, 
+                                                                        self.sources)
+        
+
+        loss = -ELL + sum(beta * KLD for KLD in KLD_list)
+        free_energy = -loss
+        
+        return loss, free_energy, ELL, KLD_list, b_new, q_s_x
+    

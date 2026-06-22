@@ -34,6 +34,7 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 from torch.utils.data import TensorDataset
 from torch.distributions import Laplace
+import math
 
 
 def mix_mnist_data_return_individual_sources(dataset_sources, 
@@ -73,6 +74,48 @@ def mix_mnist_data_return_individual_sources(dataset_sources,
 
     final_dataset = TensorDataset(output_data, output_sources, output_individual_images)
     
+    return final_dataset
+
+def mix_mnist_data_fixed_sources(dataset_sources, num_samples, K, H, scale, seed=None):
+    if seed is not None:
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        # If using CUDA: torch.cuda.manual_seed_all(seed)
+
+    output_data = []
+    output_sources = []
+    output_individual_images = []
+
+    for _ in range(num_samples):
+        bit_vector = torch.zeros(H, dtype=torch.float32)
+        individual_images = []
+
+        # Randomly choose K distinct source indices
+        active_indices = np.random.choice(H, size=K, replace=False)
+        bit_vector[active_indices] = 1
+
+        # For each source, pick image if active; else zeros
+        for i in range(H):
+            if bit_vector[i] == 1:
+                img = dataset_sources[i][np.random.choice(len(dataset_sources[i]))]
+            else:
+                img = torch.zeros_like(dataset_sources[i][0])
+            individual_images.append(img)
+
+        # Mix images (sum weighted by bit vector)
+        mixed_mean = sum(bit_vector[i] * individual_images[i] for i in range(H))
+
+        m = Laplace(mixed_mean, scale).sample()
+
+        # output_data.append(m)
+        output_data.append(m)
+        output_sources.append(bit_vector)
+        output_individual_images.append(torch.stack(individual_images))
+
+    output_data = torch.stack(output_data)
+    output_sources = torch.stack(output_sources)
+    output_individual_images = torch.stack(output_individual_images)
+    final_dataset = TensorDataset(output_data, output_sources, output_individual_images)
     return final_dataset
 
 # KL(q(x)||p(x)) where p(x) is Gaussian, q(x) is Gaussian
@@ -130,7 +173,38 @@ class LaplaceLoss(torch.nn.Module):
     def forward(self, estimate, target):
         return torch.sum((target-estimate).abs() / self.scale)
 
+# Inner energy a-K-on fixed prior
+def inner_energy_mnist_fixed_K(x, scale, s_list, mu_theta_reshaped, z_reshaped, D, H, K, n_sources):
 
+    const1 = H*torch.tensor((np.sqrt(2*np.pi))**n_sources, dtype=torch.float32)
+    const2 = D*torch.tensor(2*scale, dtype=torch.float32)
+    term1 = -torch.log(const1) - torch.log(const2) 
+
+    mu_sum = 0
+    z_norm_sum = 0
+    
+    for i in range(n_sources):
+        s = s_list[:, i]
+        mu_theta = mu_theta_reshaped[i]
+        mu_sum += s*mu_theta
+
+        z = z_reshaped[i]
+        z_norm_sum += (torch.norm(z, dim=-1) ** 2)
+
+    term2_sum = -torch.norm((x - mu_sum), p=1, dim=-2) / scale 
+    term3_sum = -z_norm_sum / 2
+
+    prior_term = (math.factorial(K) * math.factorial(n_sources-K)) / math.factorial(n_sources)
+    term4 = torch.log(torch.tensor(prior_term))
+        
+    E_theta_all = term1 + term2_sum + term3_sum[..., None] + term4  
+
+    up_bound = 0.0
+    shift = up_bound - E_theta_all.max(dim=-1, keepdim=True)[0] 
+    
+    return E_theta_all + shift, mu_sum, term4
+
+# inner energy Bernoulli prior
 def inner_energy_mnist_k_sources(x, scale, pi_list, s_list, mu_theta_reshaped, z_reshaped, D, H, M, n_sources):
 
     const1 = H*torch.tensor((np.sqrt(2*np.pi))**n_sources, dtype=torch.float32)
@@ -187,7 +261,7 @@ def inner_energy_audio(x, scale, pi_1, pi_2, s_list, mu_theta_1, mu_theta_2, z_1
     
     return E_theta_all + shift 
 
-# MNIST inner energy computation
+# MNIST inner energy computation - not fixed K
 def free_energy_first_term_and_pies_mnist_k_sources(x, b, N, M, s_list, pi_list, mu_theta_list, z_list, n_sources):
 
     D = x.size(1) # dimx = 784
@@ -267,6 +341,84 @@ def free_energy_first_term_and_pies_mnist_k_sources(x, b, N, M, s_list, pi_list,
     b_new = torch.sum(numerator_b/denominator)/(N*D*(M)**n_sources)
 
     return ELL, pi_new_list, b_new, q_s_x 
+
+# MNIST inner energy with fixed K sources per image
+def free_energy_first_term_and_pies_mnist_fixed_K(x, b, N, M, K, s_list, mu_theta_list, z_list, n_sources):
+
+    D = x.size(1)
+    transformed_mu_theta = []
+    transformed_z_list = []
+
+    H = z_list[0].size(2)
+
+    N = x.size(0)
+    
+    for i in range(n_sources):
+        shape = [N] + [1] * i + [M] + [1] * (n_sources - i - 1) + [D, 1]
+        mu_theta = mu_theta_list[i]
+        mu_theta = mu_theta.view(*shape)
+        transformed_mu_theta.append(mu_theta)
+
+        shape_z = [N] + [1] * i + [M] + [1] * (n_sources - i - 1) + [H]
+        z_i = z_list[i]
+        z_i = z_i.view(*shape_z)
+        transformed_z_list.append(z_i)
+
+    shape_x = [N] + [1] * n_sources + [D, 1]
+    x = x.view(*shape_x)
+
+    E_theta_shifted, mu_sum, s_sum = inner_energy_mnist_fixed_K(x, 
+                                                                b, 
+                                                                s_list, 
+                                                                transformed_mu_theta, 
+                                                                transformed_z_list, 
+                                                                D, 
+                                                                H, 
+                                                                K, 
+                                                                n_sources)  
+    
+   
+    exp_E_theta_shifted = torch.exp(E_theta_shifted) 
+    E_theta_sum_s = torch.sum(exp_E_theta_shifted, dim=-1, keepdim=True) 
+    
+    # Calculate q(s|x) 
+    q_s_z_x = exp_E_theta_shifted/E_theta_sum_s 
+    q_s_x = q_s_z_x.sum(dim=tuple(range(1, q_s_z_x.ndimension() - 1)))/(M**n_sources)
+    q_s_x = q_s_x.detach() 
+
+    log_q_dist = E_theta_shifted - torch.log(E_theta_sum_s) 
+    
+    log_noise_dist = -D*torch.log(torch.tensor(2*b)) - torch.norm((x - mu_sum), p=1, dim=-2)/b
+
+    # Check for NaN in log_noise distribution 
+    if torch.isnan(log_noise_dist).any() or torch.isinf(log_noise_dist).any():
+        print(f"NaNs or infs detected in log_noise_dist")
+        print(f"log_noise_dist: {log_noise_dist}")
+
+    log_prior_s_dist = s_sum
+
+    # Check for NaN in log_prior distribution -> when one of the pi-parameters goes to zero
+    if torch.isnan(log_prior_s_dist).any() or torch.isinf(log_prior_s_dist).any():
+        print(f"NaNs or infs detected in log_prior_s_dist")
+        print(f"log_prior_s_dist: {log_prior_s_dist}")
+    
+    # Check for NaN in log_posterior distribution
+    if torch.isnan(log_q_dist).any() or torch.isinf(log_q_dist).any():
+        print(f"NaNs or infs detected in log_q_dist")
+        print(f"log_q_dist: {log_q_dist}")
+
+    numerator = (log_noise_dist + log_prior_s_dist - log_q_dist)*exp_E_theta_shifted 
+    numerator_sum = torch.sum(numerator, dim=-1) 
+    denominator = torch.sum(exp_E_theta_shifted, dim=-1) 
+
+    ELL = torch.sum(numerator_sum/denominator)/(N*(M)**n_sources) 
+
+    exp_E_theta_shifted.detach()
+
+    numerator_b = torch.sum(exp_E_theta_shifted*(torch.norm((x - (mu_sum)), p=1, dim=-2)), dim=-1)
+    b_new = torch.sum(numerator_b/denominator)/(N*D*(M)**n_sources)
+
+    return ELL, b_new, q_s_x 
 
 # audio inner energy computation
 def free_energy_first_term_and_pies_audio(x, b, N, M, s_list, pi_list, mu_theta_list, z_list):
