@@ -99,7 +99,8 @@ class LaplaceLoss(nn.Module):
         return torch.sum((target-estimate).abs() / self.scale) 
 
 class Loss(nn.Module):
-    def __init__(self, sources=2, alpha=None, likelihood='bernoulli',variational=True,prior='gauss',scale=1.0):
+    def __init__(self, sources=2, alpha=None, 
+                 likelihood='bernoulli',variational=True,prior='gauss',scale=1.0):
         super(Loss, self).__init__()
         self.variational = variational
         self.prior = prior

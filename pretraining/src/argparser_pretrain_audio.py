@@ -22,11 +22,11 @@ parser.add_argument('--percent_labeled', type=float, default=0.1,
 parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
 
-parser.add_argument('--train-dir', type=str, default='/audio/train/', metavar='fname',
-                    help='Folder containing the data')
+parser.add_argument('--train-dir', type=str, default='', metavar='fname',
+                    help='Folder containing the train data')
 
-parser.add_argument('--valid-dir', type=str, default='/audio/val/', metavar='fname',
-                    help='Folder containing the data')
+parser.add_argument('--valid-dir', type=str, default='', metavar='fname',
+                    help='Folder containing the test data')
 
 parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                     help='How many batches to wait before logging training status')
@@ -79,7 +79,7 @@ parser.add_argument('--epochs', type=int, default=10,
 parser.add_argument('--warm-up', type=int, default=100,
                     help='Number of iterations to warm up beta.')
 
-parser.add_argument('--save-path', type=str, default='/pretrained_audio_models/', metavar='fname',
+parser.add_argument('--save-path', type=str, default='pretraining_audio/', metavar='fname',
                     help='Folder for saving the reconstructions') 
 
 parser.add_argument('--save-interval', type=int, default=1,

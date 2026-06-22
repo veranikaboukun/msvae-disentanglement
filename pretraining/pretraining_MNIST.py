@@ -51,7 +51,7 @@ def train(epoch):
         mu_z = mu_z_list[0]
         logvar_z = logvar_z_list[0]
 
-        loss, ELL, KLD = loss_function(data, recon_y, mu_z, logvar_z, input_name="MNIST", beta=beta) 
+        loss, ELL, KLD = loss_function(data, recon_y, mu_z, logvar_z, beta=beta) 
         loss.backward()
         optimizer.step()
 
@@ -94,7 +94,7 @@ def test(epoch):
             mu_z = mu_z_list[0]
             logvar_z = logvar_z_list[0]
           
-            loss, ELL, KLD = loss_function(data,recon_y, mu_z, logvar_z, input_name="MNIST", beta=beta)
+            loss, ELL, KLD = loss_function(data,recon_y, mu_z, logvar_z, beta=beta)
 
             test_losses[0] += loss.item()
             test_losses[1] += ELL.item()
@@ -142,7 +142,6 @@ def plot_losses(losses):
 
 args = parser.parse_args()
 torch.manual_seed(42)
-print(torch.initial_seed())
 
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 device = torch.device("cuda" if args.cuda else "cpu")
