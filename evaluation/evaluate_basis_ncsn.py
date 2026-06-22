@@ -28,7 +28,7 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
-from ncsn.models.cond_refinenet_dilated import CondRefineNetDilated # please install from original repo
+from ncsn.models.cond_refinenet_dilated import CondRefineNetDilated # please install from original NCSN repo
 from torch.utils.data import DataLoader
 import time
 import matplotlib.pyplot as plt
@@ -322,14 +322,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--path-to-checkpoint-ncsn', type=str, 
-                        default='checkpoint.pth') # NCSN checkpoint file
+                        default='msvae-disentanglement/evaluation/pretrained_model_files/checkpoint.pth') # NCSN checkpoint file
     parser.add_argument('--path-dataset', type=str, 
-                        default='data/legacy_compatible_mnist_test_set_K_4_noiseless.pt')
+                        default='msvae-disentanglement/evaluation/ms_vae_data_checkpoints/data/BASIS_compatible_mnist_test_set_K_2_noiseless.pt')
     
     parser.add_argument('--num-sources', type=int, default=10,
                     help='Number of sources to infer for the model')
     
-    parser.add_argument('--num-active-sources', type=int, default=4,
+    parser.add_argument('--num-active-sources', type=int, default=2,
                     help='')
 
     parser.add_argument('--no-cuda', action='store_true', default=False,
