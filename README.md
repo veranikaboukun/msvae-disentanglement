@@ -41,6 +41,20 @@ conda create -n lass_env python=3.8.20 -y
 conda activate lass_env
 pip install -r requirements_LASS.txt
 ```
+## Pretraining MS-VAE individual expert VAEs (MNIST + Audio)
+Please use the files in [pretraining](./pretraining) directory if you wish to pretrain your own ``expert'' VAE decoders. 
+Run the following for MNIST pretrain and make sure to not ommit the required arguments:
+```bash
+conda activate ms_vae
+cd pretraining
+python pretraining_MNIST.py --data-directory '...' --save-path '...'
+```
+For audio pretraining, make sure you have the designated training and testing directories (train-dir and valid-dir, respectively) containing the .wav files with snippets of active speech (and optionally non-speech) of individual speakers. Run the following code and make sure to not ommit the required arguments:
+```bash
+conda activate ms_vae
+cd pretraining
+python pretraining_audio.py --train-dir '...' --valid-dir '...' --save-path '...'
+```
 
 ## Pretrained Models & Requirements
 
