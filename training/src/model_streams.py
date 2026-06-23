@@ -227,7 +227,6 @@ class MultiStream_VAE_audio(nn.Module):
     def reparameterize(self, mu, logvar, M):
         std = torch.exp(0.5*logvar)
         eps = torch.randn((std.size(0), M, std.size(1))).to(std.device)
-        # eps = torch.randn((std.size(0), M, std.size(1)), dtype=torch.float16, device=std.device)
         return mu[:, None, :] + eps*std[:, None, :]
 
     def decode(self, z):
@@ -235,11 +234,10 @@ class MultiStream_VAE_audio(nn.Module):
         
         B = z[0].size(0)
         M = z[0].size(1)
-        #eps = torch.finfo(torch.float16).eps
 
         for i in range(self.n_sources):
             d = self.Decoders[i](z[i].view(-1, self.dimz))
-            recon_separate = torch.sigmoid(d).view(-1, self.dimx) #+ eps #TODO: is this eps necessary? 
+            recon_separate = torch.sigmoid(d).view(-1, self.dimx) 
             recon_separate_reshaped = recon_separate.view(B, M, self.dimx)
             recon_separate_list.append(recon_separate_reshaped)
         return recon_separate_list 
@@ -264,7 +262,7 @@ class LaplaceLoss(nn.Module):
         self.logscale = self.scale.log()
 
     def forward(self, estimate, target):
-        return torch.sum((target-estimate).abs() / self.scale) # VB: the formula checks out, scale here is the b param of Laplace, not Gauss
+        return torch.sum((target-estimate).abs() / self.scale) 
 
 class Loss_k_sources(nn.Module):
     def __init__(self, sources=2, alpha=None, likelihood='bernoulli', variational=True, prior='gauss', scale=1.0, N=128, M=5):
@@ -302,7 +300,7 @@ class Loss_k_sources(nn.Module):
         
         ELL, pi_new_list, b_new, q_s_x = free_energy_first_term_and_pies_k_sources(x, scale, N, M, s_list, pi_list, mu_theta_list, z_list, self.sources)
 
-        loss = -ELL + sum(beta * KLD for KLD in KLD_list) #VB: beta hyperparameter here is used to avoid posterior collapse (as a type of annealing, not beta VAE for disentanglement)
+        loss = -ELL + sum(beta * KLD for KLD in KLD_list) 
         free_energy = -loss
         
         return loss, free_energy, ELL, KLD_list, pi_new_list, b_new, q_s_x

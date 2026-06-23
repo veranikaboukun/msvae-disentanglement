@@ -186,10 +186,11 @@ def test(epoch, pi_list, b):
             for i, KLD in enumerate(KLD_list):
                 test_losses[2 + i] += KLD.item()
 
-            labels_s_list = s_list.detach().cpu() @ labels.T.long()
-            _, target = torch.max(labels_s_list, dim=1) 
+            labels_s_list = s_list.detach().cpu() @ labels.T.long() 
+            labels_s_list = labels_s_list[0]
+            _, target = torch.max(labels_s_list, dim=0) 
             _, prediction = torch.max(q_s_x.detach().cpu(), dim=1)
-
+            
             accuracy = accuracy_score(target.squeeze(0), prediction)
 
             metrics[0] += round(accuracy, 2)
@@ -254,7 +255,7 @@ def test(epoch, pi_list, b):
 
             _, axes = plt.subplots(n, ncols, figsize=(ncols * 2, n * 2))
             for k in range(n):
-                case_number=case_numbers[:, k].squeeze()
+                case_number=case_numbers[k].squeeze()
                 # Plot original image
                 ax = axes[k, 0]
                 ax.imshow(comparison[k * ncols].squeeze(), cmap='gray')
@@ -284,7 +285,6 @@ def test(epoch, pi_list, b):
 
         metrics /= len(mnist_dataloader_test)
         print('====> Test accuracy: {:.4f}'.format(metrics[0]), flush=True)
-        print('====> Test MIG score: {:.4f}'.format(metrics[1]), flush=True)
 
         to_log = {"test_loss": test_losses[0], "accuracy": metrics[0]} # log data with your preferred method
 
@@ -295,14 +295,14 @@ def plot_losses(losses):
 	plt.plot(np.array(range(1,args.epochs+1)),losses["train"][:,0].view(-1),label="Train")
 	plt.plot(np.array(range(1,args.epochs+1)),losses["test"][:,0].view(-1),label="Test")
 	plt.xlabel('Epoch'), plt.ylabel('-ELBO'), plt.legend(), plt.xlim(1,args.epochs)
-	plt.savefig(args.save_path + 'losses.png')
+	plt.savefig(args.save_path + '/losses.png')
 	plt.close()
 
 def plot_entropy_decoder(entropies):
     plt.figure()
     plt.plot(np.array(range(1,args.epochs+1)),entropies["train"][:,0].view(-1),label="H_dec")
     plt.xlabel('Epoch'), plt.ylabel('Average Entropy'), plt.legend(), plt.xlim(1,args.epochs)
-    plt.savefig(args.save_path + 'entropy_decoder.png')
+    plt.savefig(args.save_path + '/entropy_decoder.png')
     plt.close()
 
 def plot_entropy_encoders(entropies):
@@ -310,7 +310,7 @@ def plot_entropy_encoders(entropies):
     for i in range(args.sources):
         plt.plot(np.array(range(1,args.epochs+1)),entropies["train"][:,5+i].view(-1),label="H_enc_"+str(i))
     plt.xlabel('Epoch'), plt.ylabel('Average Entropy'), plt.legend(), plt.xlim(1,args.epochs)
-    plt.savefig(args.save_path + 'entropy_encoders.png')
+    plt.savefig(args.save_path + '/entropy_encoders.png')
     plt.close()
 
 def plot_entropy_priors(entropies):
@@ -318,14 +318,14 @@ def plot_entropy_priors(entropies):
     plt.plot(np.array(range(1,args.epochs+1)),entropies["train"][:,2].view(-1),label="H_s_prior")
     plt.plot(np.array(range(1,args.epochs+1)),entropies["train"][:,3].view(-1),label="H_z_prior")
     plt.xlabel('Epoch'), plt.ylabel('Average Entropy'), plt.legend(), plt.xlim(1,args.epochs)
-    plt.savefig(args.save_path + 'entropy_priors.png')
+    plt.savefig(args.save_path + '/entropy_priors.png')
     plt.close()
 
 def plot_entropy_s_posterior(entropies):
     plt.figure()
     plt.plot(np.array(range(1,args.epochs+1)),entropies["train"][:,1].view(-1),label="H_s_posterior")
     plt.xlabel('Epoch'), plt.ylabel('Average Entropy'), plt.legend(), plt.xlim(1,args.epochs)
-    plt.savefig(args.save_path + 'entropy_s_posterior.png')
+    plt.savefig(args.save_path + '/entropy_s_posterior.png')
     plt.close()
 
 def plot_entropy_sum_with_ELBO(losses, entropies):
@@ -333,14 +333,14 @@ def plot_entropy_sum_with_ELBO(losses, entropies):
     plt.plot(np.array(range(1,args.epochs+1)),losses["train"][:,2].view(-1),label="ELBO")
     plt.plot(np.array(range(1,args.epochs+1)),entropies["train"][:,4].view(-1),label="H_sum")
     plt.xlabel('Epoch'), plt.ylabel('Average Entropy'), plt.legend(), plt.xlim(1,args.epochs)
-    plt.savefig(args.save_path + 'entropy_sum_ELBO.png')
+    plt.savefig(args.save_path + '/entropy_sum_ELBO.png')
     plt.close()
 
 def plot_accuracy(metrics):
     plt.figure()
     plt.plot(np.array(range(1,args.epochs+1)), metrics["test"][:,0].view(-1),label="Test")
     plt.xlabel('Epoch'), plt.ylabel('Average Prediction Accuracy, %'), plt.legend(), plt.xlim(1,args.epochs)
-    plt.savefig(args.save_path + 'test_accuracy.png')
+    plt.savefig(args.save_path + '/test_accuracy.png')
     plt.close()
 
 args = parser.parse_args()
@@ -536,7 +536,7 @@ for epoch in range(1, args.epochs+1):
     with torch.no_grad():
         if epoch % args.save_interval == 0:
             torch.save(model.state_dict(), 
-                       args.save_path + 'model_'+('vae' if args.variational else 'ae')+'_K' + str(args.sources) +  '.pt')
+                       args.save_path + '/model_'+('vae' if args.variational else 'ae')+'_K' + str(args.sources) +  '.pt')
 
 plot_losses(losses)
 plot_entropy_decoder(entropies)

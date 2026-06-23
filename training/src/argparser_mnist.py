@@ -11,7 +11,7 @@ parser.add_argument('--sources',
 
 parser.add_argument('--batch-size', 
                     type=int, 
-                    default=8, 
+                    default=125, 
                     metavar='N',
                     help='input batch size for training (default: 128)') 
 
@@ -51,173 +51,172 @@ parser.add_argument('--subset-2',
 
 parser.add_argument('--training-indices-0', 
                     type=str, 
-                    default='training_indices_0.npy', 
+                    default='training/index_files/indices_training-zeros.npy', 
                     metavar='fname',
                     help='remaining 0s data not used for pretraining') 
 
 parser.add_argument('--testing-indices-0', 
                     type=str, 
-                    default='testing_indices_0.npy', 
+                    default='evaluation/index_files/indices_testing-zeros.npy', 
                     metavar='fname',
                     help='remaining 0s data not used for pretesting') 
 
 parser.add_argument('--training-indices-1',
                     type=str, 
-                    default='training_indices_1.npy',
+                    default='training/index_files/indices_training-ones.npy',
                     metavar='fname',
                     help='remaining 1s data not used for pretraining') 
 
 parser.add_argument('--testing-indices-1', 
                     type=str, 
-                    default='testing_indices_1.npy', 
+                    default='evaluation/index_files/indices_testing-ones.npy', 
                     metavar='fname',
                     help='remaining 1s data not used for pretesting') 
 
 parser.add_argument('--training-indices-2', 
                     type=str, 
-                    default='training_indices_2.npy', 
+                    default='training/index_files/indices_training-twos.npy', 
                     metavar='fname',
                     help='remaining 2s data not used for pretraining') 
 
 parser.add_argument('--testing-indices-2', 
                     type=str, 
-                    default='testing-indices-2.npy', 
+                    default='evaluation/index_files/indices_testing-twos.npy', 
                     metavar='fname',
                     help='remaining 2s data not used for pretesting')
 
 parser.add_argument('--training-indices-3', 
                     type=str, 
-                    default='training-indices-3.npy', 
+                    default='training/index_files/indices_training-threes.npy', 
                     metavar='fname',
                     help='remaining 3s data not used for pretraining')
  
 parser.add_argument('--testing-indices-3', 
                     type=str, 
-                    default='testing-indices-3.npy', 
+                    default='evaluation/index_files/indices_testing-threes.npy', 
                     metavar='fname',
                     help='remaining 3s data not used for pretesting')
 
 parser.add_argument('--training-indices-4', 
                     type=str, 
-                    default='training-indices-4.npy', 
+                    default='training/index_files/indices_training-fours.npy', 
                     metavar='fname',
                     help='remaining 4s data not used for pretraining') 
 
 parser.add_argument('--testing-indices-4', 
                     type=str, 
-                    default='testing-indices-4.npy', 
+                    default='evaluation/index_files/indices_testing-fours.npy', 
                     metavar='fname',
                     help='remaining 4s data not used for pretesting')
 
 parser.add_argument('--training-indices-5', 
                     type=str, 
-                    default='training-indices-5.npy', 
+                    default='training/index_files/indices_training-fives.npy', 
                     metavar='fname',
                     help='remaining 5s data not used for pretraining') 
 
 parser.add_argument('--testing-indices-5', 
                     type=str, 
-                    default='testing-indices-5.npy', 
+                    default='evaluation/index_files/indices_testing-fives.npy', 
                     metavar='fname',
                     help='remaining 5s data not used for pretesting')
 
 parser.add_argument('--training-indices-6', 
                     type=str, 
-                    default='training-indices-6.npy', 
+                    default='training/index_files/indices_training-sixes.npy', 
                     metavar='fname',
                     help='remaining 6s data not used for pretraining')
  
 parser.add_argument('--testing-indices-6', 
                     type=str, 
-                    default='testing-inidices-6.npy', 
+                    default='evaluation/index_files/indices_testing-sixes.npy', 
                     metavar='fname',
                     help='remaining 6s data not used for pretesting')
 
 parser.add_argument('--training-indices-7', 
                     type=str, 
-                    default='training-indices-7.npy', 
+                    default='training/index_files/indices_training-sevens.npy', 
                     metavar='fname',
                     help='remaining 7s data not used for pretraining') 
 
 parser.add_argument('--testing-indices-7', 
                     type=str, 
-                    default='testing-indices-7.npy', 
+                    default='evaluation/index_files/indices_testing-sevens.npy', 
                     metavar='fname',
                     help='remaining data not used for pretesting')
 
 parser.add_argument('--training-indices-8', 
                     type=str, 
-                    default='training-inidices-8.npy', 
+                    default='training/index_files/indices_training-eights.npy', 
                     metavar='fname',
                     help='remaining 8s data not used for pretraining') 
 
 parser.add_argument('--testing-indices-8', 
                     type=str, 
-                    default='testing-indices-8.npy', 
+                    default='evaluation/index_files/indices_testing-eigths.npy', 
                     metavar='fname',
                     help='remaining 8s data not used for pretesting')
 
 parser.add_argument('--training-indices-9', 
                     type=str, 
-                    default='training-inidices-9.npy', 
+                    default='training/index_files/indices_training-nines.npy', 
                     metavar='fname',
                     help='remaining data not used for pretraining') 
 
 parser.add_argument('--testing-indices-9', 
                     type=str, 
-                    default='testing-indices-9.npy', 
+                    default='evaluation/index_files/indices_testing-nines.npy', 
                     metavar='fname',
                     help='remaining data not used for pretesting')
 
-
 parser.add_argument('--pretrained_0_model', 
                     type=str, 
-                    default='model_0_K1.pt', 
+                    default='evaluation/ms_vae_data_checkpoints/expert_checkpoints/semi-supervised/expert_vae_zeros_10.pt', 
                     help='')
 
 parser.add_argument('--pretrained_1_model', 
                     type=str, 
-                    default='model_1_K1.pt', 
+                    default='evaluation/ms_vae_data_checkpoints/expert_checkpoints/semi-supervised/expert_vae_ones_10.pt', 
                     help='')
 
 parser.add_argument('--pretrained_2_model', 
                     type=str, 
-                    default='model_2_K1.pt', 
+                    default='evaluation/ms_vae_data_checkpoints/expert_checkpoints/semi-supervised/expert_vae_twos_10.pt', 
                     help='')
 
 parser.add_argument('--pretrained_3_model', 
                     type=str, 
-                    default='model_3_K1.pt', 
+                    default='evaluation/ms_vae_data_checkpoints/expert_checkpoints/semi-supervised/expert_vae_threes_10.pt', 
                     help='')
 
 parser.add_argument('--pretrained_4_model', 
                     type=str, 
-                    default='model_4_K1.pt', 
+                    default='evaluation/ms_vae_data_checkpoints/expert_checkpoints/semi-supervised/expert_vae_fours_10.pt', 
                     help='')
 
 parser.add_argument('--pretrained_5_model', 
                     type=str, 
-                    default='model_5_K1.pt', 
+                    default='evaluation/ms_vae_data_checkpoints/expert_checkpoints/semi-supervised/expert_vae_fives_10.pt', 
                     help='')
 
 parser.add_argument('--pretrained_6_model', 
                     type=str, 
-                    default='model_6_K1.pt', 
+                    default='evaluation/ms_vae_data_checkpoints/expert_checkpoints/semi-supervised/expert_vae_sixes_10.pt', 
                     help='')
 
 parser.add_argument('--pretrained_7_model', 
                     type=str, 
-                    default='model_7_K1.pt', 
+                    default='evaluation/ms_vae_data_checkpoints/expert_checkpoints/semi-supervised/expert_vae_sevens_10.pt', 
                     help='')
 
 parser.add_argument('--pretrained_8_model', 
                     type=str, 
-                    default='model_8_K1.pt', 
+                    default='evaluation/ms_vae_data_checkpoints/expert_checkpoints/semi-supervised/expert_vae_eights_10.pt', 
                     help='')
 
 parser.add_argument('--pretrained_9_model', 
                     type=str, 
-                    default='model_9_K1.pt', 
+                    default='evaluation/ms_vae_data_checkpoints/expert_checkpoints/semi-supervised/expert_vae_nines_10.pt', 
                     help='')
 
 parser.add_argument('--m_samples', 
@@ -383,12 +382,12 @@ parser.add_argument('--H-dim',
 
 parser.add_argument('--n-train', 
                     type=int, 
-                    default=10000,
+                    default=50000,
                     help='Number of training samples to generate.')
 
 parser.add_argument('--n-test', 
                     type=int, 
-                    default=1000,
+                    default=5000,
                     help='Number of testing samples to generate.')
 
 parser.add_argument('--num-workers', 
@@ -433,13 +432,13 @@ parser.add_argument('--beta-max',
 
 parser.add_argument('--epochs', 
                     type=int, 
-                    default=10,
+                    default=101,
                     help='Training epochs') 
 
 parser.add_argument('--warm-up', 
                     type=int, 
                     default=50,
-                    help='Number of iterations to warm up beta.') 
+                    help='Number of iterations to warm up beta.') # not used
 
 parser.add_argument('--save-interval', 
                     type=int, 
