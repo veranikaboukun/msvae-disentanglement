@@ -1,3 +1,5 @@
+# Copyright (C) 2026 Veranika Boukun (veranika.boukun@uni-oldenburg.de), Jörg Lücke
+
 import numpy as np
 import torch
 import itertools 

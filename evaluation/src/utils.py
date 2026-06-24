@@ -1,5 +1,5 @@
 # Copyright (C) 2021 Julian Neri, Roland Badeau, Philippe Depalle
-# Copyright (C) 2026 Veranika Boukun veranika.boukun@uni-oldenburg.de
+# Copyright (C) 2026 Veranika Boukun (veranika.boukun@uni-oldenburg.de), Jörg Lücke
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

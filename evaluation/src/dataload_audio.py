@@ -1,3 +1,5 @@
+# Copyright (C) 2026 Veranika Boukun (veranika.boukun@uni-oldenburg.de), Jörg Lücke
+
 import random
 random.seed(123)
 import numpy as np
