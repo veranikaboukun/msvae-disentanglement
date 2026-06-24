@@ -56,10 +56,29 @@ cd pretraining
 python pretraining_audio.py --train-dir '...' --valid-dir '...' --save-path '...'
 ```
 
-## Pretrained Models & Requirements
+## Pretrained MS-VAE Models (MNIST)
 
-We provide the pre-trained checkpoints for our MS-VAE 10% and MS-VAE 100% models. 
+We provide the pre-trained checkpoints for our MS-VAE 10% and MS-VAE 100% models, as well as the checkpoints for individual VAE experts, if you wish to train your own MS-VAE model.  
 **(To be updated later with a Zenodo link to the datasets and checkpoints)**
+
+## Training an MS-VAE (MNIST + Audio)
+
+If you wish to train your own MS-VAE model, please refer to the files in [training](./training) directory. 
+Run the following for MS-VAE training on MNIST data and make sure to not ommit the required arguments:
+```bash
+conda activate ms_vae
+python training/train_mnist_k_sources.py --data-directory <path-to-MNIST> --save-path '...'
+```
+For training MS-VAE model on audio, make sure you have the designated training and testing directories (train-dir-mixture and test-dir-mixture, respectively) containing the .wav files with snippets of active speech (and optionally non-speech) of mixed speakers (i.e., of the conversation). In addition, you would require CSV label files which indicate the activity of speakers (label-file-train and label-file-test), formatted as: FrameIndex (int), Speaker1 (int: 0/1), Speaker2 (int: 0/1). As with MNIST data, the labels are required for evaluation purposes and, in this experiment, also for replacing the "silent" frames. As stated above, we can neither provide the raw data, nor the pretrained VAE expert/MS-VAE models due to data protection regulations; hence, you would also require the pretrained VAE experts for individual speakers pretrained_speaker_0_model and pretrained_speaker_1_model (you can use the available audio pretraining script to pretrain your own models).
+
+Run the following code and make sure to not ommit the required arguments:
+```bash
+conda activate ms_vae
+cd training
+python train_audio_k_sources.py --train-dir-mixture '...' --test-dir-mixture '...'--label-file-test '...' —pretrained_speaker_0_model '...' --pretrained_speaker_1_model '...' --save-path '...'
+```
+
+## Evaluation of MS-VAE and baselines (MNIST)
 
 To replicate the results in Table 1, download the following pretrained weights and external files from the original repositories:
 
