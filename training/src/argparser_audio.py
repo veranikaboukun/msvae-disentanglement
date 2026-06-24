@@ -1,3 +1,5 @@
+# Copyright (C) 2026 Veranika Boukun (veranika.boukun@uni-oldenburg.de), Jörg Lücke
+
 import argparse
 from distutils.util import strtobool
 
