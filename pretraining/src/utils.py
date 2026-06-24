@@ -3,6 +3,8 @@ Neri, R. Badeau, P. Depalle, “Unsupervised Blind Source Separation with Variat
 29th European Signal Processing Conference (EUSIPCO), Dublin, Ireland, August 2021.
 Code available at: https://github.com/jundsp/VAE-BSS"
 '''
+# Copyright (C) 2021 Julian Neri, Roland Badeau, Philippe Depalle
+
 import torch
 import numpy as np
 

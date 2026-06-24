@@ -1,3 +1,5 @@
+# Copyright (C) 2026 Veranika Boukun (veranika.boukun@uni-oldenburg.de), Jörg Lücke
+
 from torch.utils.data import Subset, DataLoader
 from torchvision import datasets, transforms
 import numpy as np
