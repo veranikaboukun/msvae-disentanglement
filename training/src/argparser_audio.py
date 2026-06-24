@@ -21,7 +21,7 @@ parser.add_argument('--seed',
                     help='random seed (default: 1)')
 
 parser.add_argument('--unfreeze-decoders-after-n', 
-                    default=True, 
+                    default=False, 
                     type=lambda x: bool(strtobool(x)), 
                     help='True if the decoder weighs should be updated after n epoch of training.')
 
@@ -33,24 +33,24 @@ parser.add_argument('--unfreeze-n',
 parser.add_argument('--label-file-train', 
                     type=str, 
                     default='/frame_labels_train.csv',
-                    help='labels for the train section')
+                    help='labels for the train section') # Organized as: FrameIndex (int),Speaker1 (int: 0 or 1),Speaker2 (int: 0 or 1)
 
 parser.add_argument('--label-file-test', 
                     type=str, 
                     default='/frame_labels_val.csv',
-                    help='labels for the test section')
+                    help='labels for the test section') # Organized as: FrameIndex (int),Speaker1 (int: 0 or 1),Speaker2 (int: 0 or 1)
 
 parser.add_argument('--train-dir-mixture', 
                     type=str, 
                     default='/train-mixtures/', 
                     metavar='fname',
-                    help='Folder containing the training mixture data')
+                    help='Folder containing the training mixture/conversation data')
 
 parser.add_argument('--test-dir-mixture', 
                     type=str, 
                     default='/test-mixtures/', 
                     metavar='fname',
-                    help='Folder containing the testing mixture data')
+                    help='Folder containing the testing mixture/conversation data')
 
 parser.add_argument('--winlen', 
                     type=int, 
@@ -64,7 +64,7 @@ parser.add_argument('--hopfrac',
 
 parser.add_argument('--fs', 
                     type=int, 
-                    default=16000,
+                    default=48000,
                     help='sampling frequency')
 
 parser.add_argument('--nfft', 
@@ -96,36 +96,6 @@ parser.add_argument('--pi-2-init',
                     type=float, 
                     default=0.5,
                     help='Initial pi for signal 2.')
-
-parser.add_argument('--pi-3-init', 
-                    type=float, 
-                    default=0.5,
-                    help='Initial pi for signal 3.')
-
-parser.add_argument('--pi-4-init', 
-                    type=float, 
-                    default=0.5,
-                    help='Initial pi for signal 4.')
-
-parser.add_argument('--pi-5-init', 
-                    type=float, 
-                    default=0.5,
-                    help='Initial pi for signal 5.')
-
-parser.add_argument('--pi-6-init', 
-                    type=float, 
-                    default=0.5,
-                    help='Initial pi for signal 6.')
-
-parser.add_argument('--pi-7-init', 
-                    type=float, 
-                    default=0.5,
-                    help='Initial pi for signal 7.')
-
-parser.add_argument('--pi-8-init', 
-                    type=float, 
-                    default=0.5,
-                    help='Initial pi for signal 8.')
 
 parser.add_argument('--scale', 
                     type=float, 
@@ -166,7 +136,7 @@ parser.add_argument('--log-interval',
 
 parser.add_argument('--sources', 
                     type=int, 
-                    default=3,
+                    default=2,
                     help='Number of sources to infer')
 
 parser.add_argument('--dimz', 
@@ -186,7 +156,7 @@ parser.add_argument('--prior',
 
 parser.add_argument('--learning-rate', 
                     type=float, 
-                    default=.0002,
+                    default=.0001,
                     help='Learning rate')
 
 parser.add_argument('--variational', 
@@ -226,5 +196,5 @@ parser.add_argument('--save-interval',
 
 parser.add_argument('--save-reco-every', 
                     type=int, 
-                    default=5,
+                    default=1,
                     help='Save reconstruction every ... epoch.')

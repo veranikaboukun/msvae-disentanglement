@@ -302,14 +302,14 @@ def plot_losses(losses):
 	plt.plot(np.array(range(1,args.epochs+1)),losses["train"][:,0].view(-1),label="Train")
 	plt.plot(np.array(range(1,args.epochs+1)),losses["test"][:,0].view(-1),label="Test")
 	plt.xlabel('Epoch'), plt.ylabel('-ELBO'), plt.legend(), plt.xlim(1,args.epochs)
-	plt.savefig(args.save_path + 'losses.png')
+	plt.savefig(args.save_path + '/losses.png')
 	plt.close()
 
 def plot_entropy_decoder(entropies):
     plt.figure()
     plt.plot(np.array(range(1,args.epochs+1)),entropies["train"][:,0].view(-1),label="H_dec")
     plt.xlabel('Epoch'), plt.ylabel('Average Entropy'), plt.legend(), plt.xlim(1,args.epochs)
-    plt.savefig(args.save_path + 'entropy_decoder.png')
+    plt.savefig(args.save_path + '/entropy_decoder.png')
     plt.close()
 
 def plot_entropy_encoders(entropies):
@@ -317,7 +317,7 @@ def plot_entropy_encoders(entropies):
     for i in range(args.sources):
         plt.plot(np.array(range(1,args.epochs+1)),entropies["train"][:,5+i].view(-1),label="H_enc_"+str(i))
     plt.xlabel('Epoch'), plt.ylabel('Average Entropy'), plt.legend(), plt.xlim(1,args.epochs)
-    plt.savefig(args.save_path + 'entropy_encoders.png')
+    plt.savefig(args.save_path + '/entropy_encoders.png')
     plt.close()
 
 def plot_entropy_priors(entropies):
@@ -325,14 +325,14 @@ def plot_entropy_priors(entropies):
     plt.plot(np.array(range(1,args.epochs+1)),entropies["train"][:,2].view(-1),label="H_s_prior")
     plt.plot(np.array(range(1,args.epochs+1)),entropies["train"][:,3].view(-1),label="H_z_prior")
     plt.xlabel('Epoch'), plt.ylabel('Average Entropy'), plt.legend(), plt.xlim(1,args.epochs)
-    plt.savefig(args.save_path + 'entropy_priors.png')
+    plt.savefig(args.save_path + '/entropy_priors.png')
     plt.close()
 
 def plot_entropy_s_posterior(entropies):
     plt.figure()
     plt.plot(np.array(range(1,args.epochs+1)),entropies["train"][:,1].view(-1),label="H_s_posterior")
     plt.xlabel('Epoch'), plt.ylabel('Average Entropy'), plt.legend(), plt.xlim(1,args.epochs)
-    plt.savefig(args.save_path + 'entropy_s_posterior.png')
+    plt.savefig(args.save_path + '/entropy_s_posterior.png')
     plt.close()
 
 def plot_entropy_sum_with_ELBO(losses, entropies):
@@ -340,14 +340,14 @@ def plot_entropy_sum_with_ELBO(losses, entropies):
     plt.plot(np.array(range(1,args.epochs+1)),losses["train"][:,2].view(-1),label="ELBO")
     plt.plot(np.array(range(1,args.epochs+1)),entropies["train"][:,4].view(-1),label="H_sum")
     plt.xlabel('Epoch'), plt.ylabel('Average Entropy'), plt.legend(), plt.xlim(1,args.epochs)
-    plt.savefig(args.save_path + 'entropy_sum_ELBO.png')
+    plt.savefig(args.save_path + '/entropy_sum_ELBO.png')
     plt.close()
 
 def plot_accuracy(accuracies):
     plt.figure()
     plt.plot(np.array(range(1,args.epochs+1)),accuracies["test"][:,0].view(-1),label="Test")
     plt.xlabel('Epoch'), plt.ylabel('Average Prediction Accuracy, %'), plt.legend(), plt.xlim(1,args.epochs)
-    plt.savefig(args.save_path + 'test_accuracy.png')
+    plt.savefig(args.save_path + '/test_accuracy.png')
     plt.close()
 
 args = parser.parse_args()
@@ -371,11 +371,11 @@ spec_transform = Spectrogram(n_fft=args.nfft,
                              pad_mode='constant')
 
  
-test_dataset_mix = SpectrogramDataset(valid_files_mix, 
-                                                args.winlen, 
-                                                transform=spec_transform, 
-                                                max_timesteps=17, 
-                                                transpose=False)
+test_dataset_mix = SpeechSpectrogramDataset(valid_files_mix, 
+                                            args.winlen, 
+                                            transform=spec_transform, 
+                                            max_timesteps=17, 
+                                            transpose=False)
 
 
 # Replace with zeros those frames which are labeled with (0, 0)
@@ -405,10 +405,10 @@ num_test = len(test_set)
 labels_train = pd.read_csv(args.label_file_train).values
 train_files_mix = sorted(glob.glob(args.train_dir_mixture + '*.wav', recursive=True))
 train_dataset_mix = SpeechSpectrogramDataset(train_files_mix, 
-                                                args.winlen, 
-                                                transform=spec_transform, 
-                                                max_timesteps=17,
-                                                transpose=False) 
+                                            args.winlen, 
+                                            transform=spec_transform, 
+                                            max_timesteps=17,
+                                            transpose=False) 
 
 train_data = []
 for idx in range(len(train_dataset_mix)):
@@ -516,13 +516,18 @@ pretrained_models = [
 ]
 
 for i in range(args.sources):
-    vae = MultiStream_VAE_audio(dimx=dimx, dimz=args.dimz, n_sources=1, device='cpu', variational=True)
+    vae = MultiStream_VAE_audio(dimx=dimx, 
+                                dimz=args.dimz, 
+                                n_sources=1, 
+                                device='cpu', 
+                                variational=True)
+    
     vae.load_state_dict(torch.load(pretrained_models[i]))  # Load pretrained models (only decoders will be used)
     vae_list.append(vae)
 
 if args.freeze_decoder:
     for i in range(args.sources):
-        model.Decoders[i].load_state_dict(vae_list[i].Decoders[0].state_dict()) 
+        model.module.Decoders[i].load_state_dict(vae_list[i].Decoders[0].state_dict()) # sometimes "module" is required sometimes not - adjust as necessary!
 
 loss_overall = Loss_k_sources(sources=args.sources, 
                                likelihood='laplace', 
@@ -557,7 +562,7 @@ for epoch in range(1, args.epochs+1):
 
     with torch.no_grad():
         if epoch % args.save_interval == 0:
-            torch.save(model.state_dict(), args.save_path + 'model_'+('vae' if args.variational else 'ae')+'_K' + str(args.sources) +  '.pt')
+            torch.save(model.state_dict(), args.save_path + '/model_'+('vae' if args.variational else 'ae')+'_K' + str(args.sources) +  '.pt')
 
 plot_losses(losses)
 plot_entropy_decoder(entropies)
